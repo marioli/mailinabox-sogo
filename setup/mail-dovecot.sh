@@ -26,11 +26,7 @@ source /etc/mailinabox.conf # load global vars
 echo "Installing Dovecot (IMAP server)..."
 apt_install \
 	dovecot-core dovecot-imapd dovecot-pop3d dovecot-lmtpd \
-<<<<<<< Upstream, based on branch 'master' of https://github.com/jkaberg/mailinabox-sogo.git
 	dovecot-sieve dovecot-managesieved dovecot-mysql
-=======
-	dovecot-sieve dovecot-managesieved dovecot-mysql dovecot-lucene
->>>>>>> c0abb8e # This is a combination of 6 commits. # The first commit's message is: replace dovecot-lucene with solr. 
 
 # The `dovecot-imapd`, `dovecot-pop3d`, and `dovecot-lmtpd` packages automatically
 # enable IMAP, POP and LMTP protocols.
