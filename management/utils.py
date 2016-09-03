@@ -1,5 +1,6 @@
 import os.path
 
+
 # DO NOT import non-standard modules. This module is imported by
 # migrate.py which runs on fresh machines before anything is installed
 # besides Python.
@@ -10,6 +11,7 @@ def load_environment():
     # Load settings from /etc/mailinabox.conf.
     return load_env_vars_from_file("/etc/mailinabox.conf")
 
+
 def load_env_vars_from_file(fn):
     # Load settings from a KEY=VALUE file.
     import collections
@@ -17,10 +19,12 @@ def load_env_vars_from_file(fn):
     for line in open(fn): env.setdefault(*line.strip().split("=", 1))
     return env
 
+
 def save_environment(env):
     with open("/etc/mailinabox.conf", "w") as f:
         for k, v in env.items():
             f.write("%s=%s\n" % (k, v))
+
 
 # THE SETTINGS FILE AT STORAGE_ROOT/settings.yaml.
 
@@ -30,15 +34,17 @@ def write_settings(config, env):
     with open(fn, "w") as f:
         f.write(rtyaml.dump(config))
 
+
 def load_settings(env):
     import rtyaml
     fn = os.path.join(env['STORAGE_ROOT'], 'settings.yaml')
     try:
         config = rtyaml.load(open(fn, "r"))
-        if not isinstance(config, dict): raise ValueError() # caught below
+        if not isinstance(config, dict): raise ValueError()  # caught below
         return config
     except:
-        return { }
+        return {}
+
 
 # UTILITIES
 
@@ -46,6 +52,7 @@ def safe_domain_name(name):
     # Sanitize a domain name so it is safe to use as a file name on disk.
     import urllib.parse
     return urllib.parse.quote(name, safe='')
+
 
 def sort_domains(domain_names, env):
     # Put domain names in a nice sorted order.
@@ -55,8 +62,8 @@ def sort_domains(domain_names, env):
     # each of the domain names to the zone that contains them. Walk the domains
     # from shortest to longest since zones are always shorter than their
     # subdomains.
-    zones = { }
-    for domain in sorted(domain_names, key=lambda d : len(d)):
+    zones = {}
+    for domain in sorted(domain_names, key=lambda d: len(d)):
         for z in zones.values():
             if domain.endswith("." + z):
                 # We found a parent domain already in the list.
@@ -69,31 +76,32 @@ def sort_domains(domain_names, env):
 
     # Sort the zones.
     zone_domains = sorted(zones.values(),
-      key = lambda d : (
-        # PRIMARY_HOSTNAME or the zone that contains it is always first.
-        not (d == env['PRIMARY_HOSTNAME'] or env['PRIMARY_HOSTNAME'].endswith("." + d)),
+                          key=lambda d: (
+                              # PRIMARY_HOSTNAME or the zone that contains it is always first.
+                              not (d == env['PRIMARY_HOSTNAME'] or env['PRIMARY_HOSTNAME'].endswith("." + d)),
 
-        # Then just dumb lexicographically.
-        d,
-      ))
+                              # Then just dumb lexicographically.
+                              d,
+                          ))
 
     # Now sort the domain names that fall within each zone.
     domain_names = sorted(domain_names,
-      key = lambda d : (
-        # First by zone.
-        zone_domains.index(zones[d]),
+                          key=lambda d: (
+                              # First by zone.
+                              zone_domains.index(zones[d]),
 
-        # PRIMARY_HOSTNAME is always first within the zone that contains it.
-        d != env['PRIMARY_HOSTNAME'],
+                              # PRIMARY_HOSTNAME is always first within the zone that contains it.
+                              d != env['PRIMARY_HOSTNAME'],
 
-        # Followed by any of its subdomains.
-        not d.endswith("." + env['PRIMARY_HOSTNAME']),
+                              # Followed by any of its subdomains.
+                              not d.endswith("." + env['PRIMARY_HOSTNAME']),
 
-        # Then in right-to-left lexicographic order of the .-separated parts of the name.
-        list(reversed(d.split("."))),
-      ))
-    
+                              # Then in right-to-left lexicographic order of the .-separated parts of the name.
+                              list(reversed(d.split("."))),
+                          ))
+
     return domain_names
+
 
 def sort_email_addresses(email_addresses, env):
     email_addresses = set(email_addresses)
@@ -103,8 +111,9 @@ def sort_email_addresses(email_addresses, env):
         domain_emails = set(email for email in email_addresses if email.endswith("@" + domain))
         ret.extend(sorted(domain_emails))
         email_addresses -= domain_emails
-    ret.extend(sorted(email_addresses)) # whatever is left
+    ret.extend(sorted(email_addresses))  # whatever is left
     return ret
+
 
 def exclusive_process(name):
     # Ensure that a process named `name` does not execute multiple
@@ -139,7 +148,7 @@ def exclusive_process(name):
                 try:
                     existing_pid = int(f.read().strip())
                 except ValueError:
-                    pass # No valid integer in the file.
+                    pass  # No valid integer in the file.
 
                 # Check if the pid in it is valid.
                 if existing_pid:
@@ -152,7 +161,7 @@ def exclusive_process(name):
                 f.write(str(mypid))
                 f.truncate()
                 atexit.register(clear_my_pid, pidfile)
- 
+
 
 def clear_my_pid(pidfile):
     import os
@@ -167,21 +176,22 @@ def is_pid_valid(pid):
     try:
         os.kill(pid, 0)
     except OSError as err:
-        if err.errno == errno.ESRCH: # No such process
+        if err.errno == errno.ESRCH:  # No such process
             return False
-        elif err.errno == errno.EPERM: # Not permitted to send signal
+        elif err.errno == errno.EPERM:  # Not permitted to send signal
             return True
-        else: # EINVAL
+        else:  # EINVAL
             raise
     else:
         return True
+
 
 def shell(method, cmd_args, env={}, capture_stderr=False, return_bytes=False, trap=False, input=None):
     # A safe way to execute processes.
     # Some processes like apt-get require being given a sane PATH.
     import subprocess
 
-    env.update({ "PATH": "/sbin:/bin:/usr/sbin:/usr/bin" })
+    env.update({"PATH": "/sbin:/bin:/usr/sbin:/usr/bin"})
     kwargs = {
         'env': env,
         'stderr': None if not capture_stderr else subprocess.STDOUT,
@@ -204,11 +214,13 @@ def shell(method, cmd_args, env={}, capture_stderr=False, return_bytes=False, tr
     else:
         return code, ret
 
+
 def create_syslog_handler():
     import logging.handlers
     handler = logging.handlers.SysLogHandler(address='/dev/log')
     handler.setLevel(logging.WARNING)
     return handler
+
 
 def du(path):
     # Computes the size of all files in the path, like the `du` command.
@@ -229,33 +241,36 @@ def du(path):
             total_size += stat.st_size
     return total_size
 
+
 def wait_for_service(port, public, env, timeout):
-	# Block until a service on a given port (bound privately or publicly)
-	# is taking connections, with a maximum timeout.
-	import socket, time
-	start = time.perf_counter()
-	while True:
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.settimeout(timeout/3)
-		try:
-			s.connect(("127.0.0.1" if not public else env['PUBLIC_IP'], port))
-			return True
-		except OSError:
-			if time.perf_counter() > start+timeout:
-				return False
-		time.sleep(min(timeout/4, 1))
+    # Block until a service on a given port (bound privately or publicly)
+    # is taking connections, with a maximum timeout.
+    import socket, time
+    start = time.perf_counter()
+    while True:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout / 3)
+        try:
+            s.connect(("127.0.0.1" if not public else env['PUBLIC_IP'], port))
+            return True
+        except OSError:
+            if time.perf_counter() > start + timeout:
+                return False
+        time.sleep(min(timeout / 4, 1))
+
 
 def fix_boto():
-	# Google Compute Engine instances install some Python-2-only boto plugins that
-	# conflict with boto running under Python 3. Disable boto's default configuration
-	# file prior to importing boto so that GCE's plugin is not loaded:
-	import os
-	os.environ["BOTO_CONFIG"] = "/etc/boto3.cfg"
+    # Google Compute Engine instances install some Python-2-only boto plugins that
+    # conflict with boto running under Python 3. Disable boto's default configuration
+    # file prior to importing boto so that GCE's plugin is not loaded:
+    import os
+    os.environ["BOTO_CONFIG"] = "/etc/boto3.cfg"
 
 
 if __name__ == "__main__":
-	from web_update import get_web_domains
-	env = load_environment()
-	domains = get_web_domains(env)
-	for domain in domains:
-		print(domain)
+    from web_update import get_web_domains
+
+    env = load_environment()
+    domains = get_web_domains(env)
+    for domain in domains:
+        print(domain)

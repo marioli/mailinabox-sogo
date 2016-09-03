@@ -133,7 +133,7 @@ function ufw_allow {
 }
 
 function restart_service {
-	hide_output service $1 restart
+	hide_output systemctl restart $1
 }
 
 ## Dialog Functions ##

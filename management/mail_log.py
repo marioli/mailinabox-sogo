@@ -194,6 +194,7 @@ def scan_postfix_cleanup_line(date, _, collector):
 
     collector["activity-by-hour"]["smtp-receives"][date.hour] += 1
 
+
 def scan_postfix_submission_line(date, log, collector):
     """ Scan a postfix submission log line and extract interesting data """
 

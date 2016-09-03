@@ -20,6 +20,7 @@ mkdir -p $STORAGE_ROOT/mail/dkim
 # Used in InternalHosts and ExternalIgnoreList configuration directives.
 # Not quite sure why.
 echo "127.0.0.1" > /etc/opendkim/TrustedHosts
+touch /etc/opendkim/{KeyTable,SigningTable}
 
 if grep -q "ExternalIgnoreList" /etc/opendkim.conf; then
 	true # already done #NODOC
@@ -35,6 +36,9 @@ Socket                  inet:8891@127.0.0.1
 RequireSafeKeys         false
 EOF
 fi
+
+tools/editconf.py /etc/default/opendkim "SOCKET=inet:8891@127.0.0.1"
+
 
 # Create a new DKIM key. This creates mail.private and mail.txt
 # in $STORAGE_ROOT/mail/dkim. The former is the private key and
@@ -79,4 +83,3 @@ tools/editconf.py /etc/postfix/main.cf \
 restart_service opendkim
 restart_service opendmarc
 restart_service postfix
-

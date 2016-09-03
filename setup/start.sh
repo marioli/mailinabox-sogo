@@ -82,7 +82,6 @@ if [ ! -f $STORAGE_ROOT/mailinabox.version ]; then
 	chown $STORAGE_USER.$STORAGE_USER $STORAGE_ROOT/mailinabox.version
 fi
 
-
 # Save the global options in /etc/mailinabox.conf so that standalone
 # tools know where to look for data.
 cat > /etc/mailinabox.conf << EOF;
@@ -99,17 +98,17 @@ EOF
 source setup/system.sh
 source setup/ssl.sh
 source setup/dns.sh
+source setup/mysql.sh
 source setup/mail-postfix.sh
 source setup/mail-dovecot.sh
 source setup/mail-users.sh
+source setup/solr.sh
 source setup/dkim.sh
 source setup/spamassassin.sh
 source setup/web.sh
-source setup/webmail.sh
-source setup/owncloud.sh
-source setup/zpush.sh
 source setup/management.sh
 source setup/munin.sh
+source setup/sogo.sh
 
 # Wait for the management daemon to start...
 until nc -z -w 4 127.0.0.1 10222

@@ -23,7 +23,7 @@ content = sys.stdin.read().strip()
 
 # If there's nothing coming in, just exit.
 if content == "":
-	sys.exit(0)
+    sys.exit(0)
 
 # create MIME message
 msg = Message()
@@ -36,7 +36,7 @@ msg.set_payload(content, "UTF-8")
 smtpclient = smtplib.SMTP('127.0.0.1', 25)
 smtpclient.ehlo()
 smtpclient.sendmail(
-        admin_addr, # MAIL FROM
-        admin_addr, # RCPT TO
-        msg.as_string())
+    admin_addr,  # MAIL FROM
+    admin_addr,  # RCPT TO
+    msg.as_string())
 smtpclient.quit()

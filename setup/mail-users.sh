@@ -15,14 +15,14 @@ source /etc/mailinabox.conf # load global vars
 # The database of mail users (i.e. authenticated users, who have mailboxes)
 # and aliases (forwarders).
 
-db_path=$STORAGE_ROOT/mail/users.sqlite
+#db_path=$STORAGE_ROOT/mail/users.sqlite
 
 # Create an empty database if it doesn't yet exist.
-if [ ! -f $db_path ]; then
-	echo Creating new user database: $db_path;
-	echo "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, extra, privileges TEXT NOT NULL DEFAULT '');" | sqlite3 $db_path;
-	echo "CREATE TABLE aliases (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT NOT NULL UNIQUE, destination TEXT NOT NULL, permitted_senders TEXT);" | sqlite3 $db_path;
-fi
+#if [ ! -f $db_path ]; then
+#	echo Creating new user database: $db_path;
+#	echo "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, extra, privileges TEXT NOT NULL DEFAULT '');" | sqlite3 $db_path;
+#	echo "CREATE TABLE aliases (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT NOT NULL UNIQUE, destination TEXT NOT NULL, permitted_senders TEXT);" | sqlite3 $db_path;
+#fi
 
 # ### User Authentication
 
@@ -44,13 +44,14 @@ userdb {
 EOF
 
 # Configure the SQL to query for a user's metadata and password.
+# TODO: SOGo doesn't support SHA512-CRYPT. Using SSHA256 for now.
 cat > /etc/dovecot/dovecot-sql.conf.ext << EOF;
-driver = sqlite
-connect = $db_path
-default_pass_scheme = SHA512-CRYPT
-password_query = SELECT email as user, password FROM users WHERE email='%u';
-user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "$STORAGE_ROOT/mail/mailboxes/%d/%n" as home FROM users WHERE email='%u';
-iterate_query = SELECT email AS user FROM users;
+driver = mysql
+connect = host=127.0.0.1 dbname=mailinabox user=mailinabox password=$MIAB_SQL_PW
+default_pass_scheme = SSHA256
+password_query = SELECT email as user, password FROM miab_users WHERE email='%u';
+user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "$STORAGE_ROOT/mail/mailboxes/%d/%n" as home FROM miab_users WHERE email='%u';
+iterate_query = SELECT email AS user FROM miab_users;
 EOF
 chmod 0600 /etc/dovecot/dovecot-sql.conf.ext # per Dovecot instructions
 
@@ -80,7 +81,7 @@ tools/editconf.py /etc/postfix/main.cf \
 # who authenticated. An SQL query will find who are the owners of any given
 # address.
 tools/editconf.py /etc/postfix/main.cf \
-	smtpd_sender_login_maps=sqlite:/etc/postfix/sender-login-maps.cf
+	smtpd_sender_login_maps=mysql:/etc/postfix/sender-login-maps.cf
 
 # Postfix will query the exact address first, where the priority will be alias
 # records first, then user records. If there are no matches for the exact
@@ -88,8 +89,11 @@ tools/editconf.py /etc/postfix/main.cf \
 # catch-alls and domain aliases. A NULL permitted_senders column means to
 # take the value from the destination column.
 cat > /etc/postfix/sender-login-maps.cf << EOF;
-dbpath=$db_path
-query = SELECT permitted_senders FROM (SELECT permitted_senders, 0 AS priority FROM aliases WHERE source='%s' AND permitted_senders IS NOT NULL UNION SELECT destination AS permitted_senders, 1 AS priority FROM aliases WHERE source='%s' AND permitted_senders IS NULL UNION SELECT email as permitted_senders, 2 AS priority FROM users WHERE email='%s') ORDER BY priority LIMIT 1;
+user = mailinabox
+password = $MIAB_SQL_PW
+hosts = 127.0.0.1
+dbname = mailinabox
+query = SELECT 1 FROM miab_users WHERE email LIKE '%%@%s' UNION SELECT 1 FROM miab_aliases WHERE destination LIKE '%%@%s';
 EOF
 
 # ### Destination Validation
@@ -97,21 +101,27 @@ EOF
 # Use a Sqlite3 database to check whether a destination email address exists,
 # and to perform any email alias rewrites in Postfix.
 tools/editconf.py /etc/postfix/main.cf \
-	virtual_mailbox_domains=sqlite:/etc/postfix/virtual-mailbox-domains.cf \
-	virtual_mailbox_maps=sqlite:/etc/postfix/virtual-mailbox-maps.cf \
-	virtual_alias_maps=sqlite:/etc/postfix/virtual-alias-maps.cf \
+	virtual_mailbox_domains=mysql:/etc/postfix/virtual-mailbox-domains.cf \
+	virtual_mailbox_maps=mysql:/etc/postfix/virtual-mailbox-maps.cf \
+	virtual_alias_maps=mysql:/etc/postfix/virtual-alias-maps.cf \
 	local_recipient_maps=\$virtual_mailbox_maps
 
 # SQL statement to check if we handle incoming mail for a domain, either for users or aliases.
 cat > /etc/postfix/virtual-mailbox-domains.cf << EOF;
-dbpath=$db_path
-query = SELECT 1 FROM users WHERE email LIKE '%%@%s' UNION SELECT 1 FROM aliases WHERE source LIKE '%%@%s'
+user = mailinabox
+password = $MIAB_SQL_PW
+hosts = 127.0.0.1
+dbname = mailinabox
+query = SELECT 1 FROM miab_users WHERE email LIKE '%%@%s' UNION SELECT 1 FROM miab_aliases WHERE source LIKE '%%@%s';
 EOF
 
 # SQL statement to check if we handle incoming mail for a user.
 cat > /etc/postfix/virtual-mailbox-maps.cf << EOF;
-dbpath=$db_path
-query = SELECT 1 FROM users WHERE email='%s'
+user = mailinabox
+password = $MIAB_SQL_PW
+hosts = 127.0.0.1
+dbname = mailinabox
+query = SELECT 1 FROM miab_users WHERE email='%s';
 EOF
 
 # SQL statement to rewrite an email address if an alias is present.
@@ -139,8 +149,11 @@ EOF
 # it might have just permitted_senders, skip any records with an
 # empty destination here so that other lower priority rules might match.
 cat > /etc/postfix/virtual-alias-maps.cf << EOF;
-dbpath=$db_path
-query = SELECT destination from (SELECT destination, 0 as priority FROM aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM users WHERE email='%s') ORDER BY priority LIMIT 1;
+user = mailinabox
+password = $MIAB_SQL_PW
+hosts = 127.0.0.1
+dbname = mailinabox
+query = SELECT destination FROM miab_aliases WHERE source='%s';
 EOF
 
 # Restart Services
@@ -148,5 +161,3 @@ EOF
 
 restart_service postfix
 restart_service dovecot
-
-

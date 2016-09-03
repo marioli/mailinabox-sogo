@@ -7,7 +7,7 @@ echo "Installing Mail-in-a-Box system management daemon..."
 # Install packages.
 # flask, yaml, dnspython, and dateutil are all for our Python 3 management daemon itself.
 # duplicity does backups. python-pip is so we can 'pip install boto' for Python 2, for duplicity, so it can do backups to AWS S3.
-apt_install python3-flask links duplicity libyaml-dev python3-dnspython python3-dateutil python-pip
+apt_install python3-flask links duplicity libyaml-dev python3-dnspython python3-dateutil python-pip supervisor python-dev
 
 # These are required to pip install cryptography.
 apt_install build-essential libssl-dev libffi-dev python3-dev
@@ -30,28 +30,28 @@ if [ ! -f $STORAGE_ROOT/backup/secret_key.txt ]; then
 	$(umask 077; openssl rand -base64 2048 > $STORAGE_ROOT/backup/secret_key.txt)
 fi
 
-# Link the management server daemon into a well known location.
-rm -f /usr/local/bin/mailinabox-daemon
-ln -s `pwd`/management/daemon.py /usr/local/bin/mailinabox-daemon
+# Host the management UI with supervisor
+cat > /etc/supervisor/conf.d/mailinabox.conf << EOF;
+[program:mailinabox]
+user = root
+autostart=true
+EOF
 
-# Create an init script to start the management daemon and keep it
-# running after a reboot.
-rm -f /etc/init.d/mailinabox
-ln -s $(pwd)/conf/management-initscript /etc/init.d/mailinabox
-hide_output update-rc.d mailinabox defaults
+tools/editconf.py /etc/supervisor/conf.d/mailinabox.conf \
+    "directory=`pwd`/management/" \
+    "command=`pwd`/management/daemon.py"
 
-# Remove old files we no longer use.
-rm -f /etc/cron.daily/mailinabox-backup
-rm -f /etc/cron.daily/mailinabox-statuschecks
+restart_service supervisor
+
+sleep 5
+
+hide_output supervisorctl reread
+hide_output supervisorctl update
 
 # Perform nightly tasks at 3am in system time: take a backup, run
 # status checks and email the administrator any changes.
-
 cat > /etc/cron.d/mailinabox-nightly << EOF;
 # Mail-in-a-Box --- Do not edit / will be overwritten on update.
 # Run nightly tasks: backup, status checks.
 0 3 * * *	root	(cd `pwd` && management/daily_tasks.sh)
 EOF
-
-# Start the management server.
-restart_service mailinabox

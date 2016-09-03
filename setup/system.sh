@@ -68,26 +68,6 @@ then
 	fi
 fi
 
-# ### Add Mail-in-a-Box's PPA.
-
-# We've built several .deb packages on our own that we want to include.
-# One is a replacement for Ubuntu's stock postgrey package that makes
-# some enhancements. The other is dovecot-lucene, a Lucene-based full
-# text search plugin for (and by) dovecot, which is not available in
-# Ubuntu currently.
-#
-# So, first ensure add-apt-repository is installed, then use it to install
-# the [mail-in-a-box ppa](https://launchpad.net/~mail-in-a-box/+archive/ubuntu/ppa).
-
-
-if [ ! -f /usr/bin/add-apt-repository ]; then
-	echo "Installing add-apt-repository..."
-	hide_output apt-get update
-	apt_install software-properties-common
-fi
-
-hide_output add-apt-repository -y ppa:mail-in-a-box/ppa
-
 # ### Update Packages
 
 # Update system packages to make sure we have the latest upstream versions of things from Ubuntu.
@@ -289,6 +269,7 @@ fi
 restart_service bind9
 restart_service resolvconf
 
+
 # ### Fail2Ban Service
 
 # Configure the Fail2Ban installation to prevent dumb bruce-force attacks against dovecot, postfix, ssh, etc.
@@ -304,4 +285,4 @@ cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 # Roundcube for the first time. This causes fail2ban to fail to start. Later
 # scripts will ensure the files exist and then fail2ban is given another
 # restart at the very end of setup.
-restart_service fail2ban
+#restart_service fail2ban

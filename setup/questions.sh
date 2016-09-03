@@ -9,11 +9,11 @@ if [ -z "$NONINTERACTIVE" ]; then
 	if [ ! -f /usr/bin/dialog ] || [ ! -f /usr/bin/python3 ] || [ ! -f /usr/bin/pip3 ]; then
 		echo Installing packages needed for setup...
 		apt-get -q -q update
-		apt_get_quiet install dialog python3 python3-pip  || exit 1
+		apt_get_quiet install dialog python3 python3-pip mysql-client libmysqlclient-dev || exit 1
 	fi
 
 	# email_validator is repeated in setup/management.sh
-	hide_output pip3 install "email_validator>=1.0.0" || exit 1
+	hide_output pip3 install "email_validator>=1.0.0" mysqlclient || exit 1
 
 	message_box "Mail-in-a-Box Installation" \
 		"Hello and thanks for deploying a Mail-in-a-Box!
@@ -63,7 +63,7 @@ you really want.
 
 		# Take the part after the @-sign as the user's domain name, and add
 		# 'box.' to the beginning to create a default hostname for this machine.
-		DEFAULT_PRIMARY_HOSTNAME=box.$(echo $EMAIL_ADDR | sed 's/.*@//')
+		DEFAULT_PRIMARY_HOSTNAME=mail.$(echo $EMAIL_ADDR | sed 's/.*@//')
 	fi
 
 	input_box "Hostname" \
