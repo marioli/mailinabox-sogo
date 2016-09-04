@@ -31,6 +31,7 @@ def get_services():
         {"name": "OpenDMARC", "port": 8893, "public": False,},
         {"name": "Mail-in-a-Box Management Daemon", "port": 10222, "public": False,},
         {"name": "SOGo Groupware", "port": 20000, "public": False,},
+        {"name": "MySQL Server", "port": 3306, "public": False,},
         {"name": "SSH Login (ssh)", "port": get_ssh_port(), "public": True,},
         {"name": "Public DNS (nsd4)", "port": 53, "public": True,},
         {"name": "Incoming Mail (SMTP/postfix)", "port": 25, "public": True,},
