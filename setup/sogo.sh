@@ -24,10 +24,10 @@ apt_install sogo sogo-activesync libwbxml2-0 memcached
 
 sudo -u sogo bash -c "
 defaults write sogod SOGoUserSources '({type = sql;id = directory;viewURL = mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_view;canAuthenticate = YES;isAddressBook = YES;displayName = \"Global Address Book\";userPasswordAlgorithm = ssha256;})'
-defaults write sogod SOGoProfileURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_user_profile'
-defaults write sogod OCSFolderInfoURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_folder_info'
-defaults write sogod OCSEMailAlarmsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_alarms_folder'
-defaults write sogod OCSSessionsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_sessions_folder'
+defaults write sogod SOGoProfileURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_user_profile'
+defaults write sogod OCSFolderInfoURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_folder_info'
+defaults write sogod OCSEMailAlarmsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_alarms_folder'
+defaults write sogod OCSSessionsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_sessions_folder'
 defaults write sogod SOGoEnableEMailAlarms YES
 defaults write sogod SOGoPageTitle '${FQDN}';
 defaults write sogod SOGoForwardEnabled YES;
