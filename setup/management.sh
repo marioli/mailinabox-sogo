@@ -22,32 +22,34 @@ hide_output pip3 install --upgrade \
 # duplicity uses python 2 so we need to get the python 2 package of boto to have backups to S3.
 # boto from the Ubuntu package manager is too out-of-date -- it doesn't support the newer
 # S3 api used in some regions, which breaks backups to those regions.  See #627, #653.
-# Also install supervisor from pip as we use it to host the management ui
-hide_output pip install --upgrade boto supervisor
+hide_output pip install --upgrade boto
+
+# Create an systemd script to start Management daemon
+LOCATION=`pwd`
+cat > /etc/systemd/system/mailinabox.service << EOF;
+[Unit]
+Description=Management daemon for Mailinabox
+
+[Service]
+Environment=
+WorkingDirectory=$LOCATION/management/
+ExecStart=/usr/bin/python3 $LOCATION/management/daemon.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload and enable the daemon via systemctl
+hide_output systemctl daemon-reload
+hide_output systemctl enable mailinabox.service
+hide_output systemctl start mailinabox.service
 
 # Create a backup directory and a random key for encrypting backups.
 mkdir -p $STORAGE_ROOT/backup
 if [ ! -f $STORAGE_ROOT/backup/secret_key.txt ]; then
 	$(umask 077; openssl rand -base64 2048 > $STORAGE_ROOT/backup/secret_key.txt)
 fi
-
-# Host the management UI with supervisor
-cat > /etc/supervisor/conf.d/mailinabox.conf << EOF;
-[program:mailinabox]
-user = root
-autostart=true
-EOF
-
-tools/editconf.py /etc/supervisor/conf.d/mailinabox.conf \
-    "directory=`pwd`/management/" \
-    "command=`pwd`/management/daemon.py"
-
-restart_service supervisor
-
-sleep 5
-
-hide_output supervisorctl reread
-hide_output supervisorctl update
 
 # Perform nightly tasks at 3am in system time: take a backup, run
 # status checks and email the administrator any changes.
