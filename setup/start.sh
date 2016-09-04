@@ -105,6 +105,7 @@ source setup/mail-users.sh
 source setup/solr.sh
 source setup/dkim.sh
 source setup/spamassassin.sh
+source setup/clamsmtpd.sh
 source setup/web.sh
 source setup/management.sh
 source setup/munin.sh
