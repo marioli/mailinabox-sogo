@@ -60,7 +60,9 @@ defaults write sogod SOGoMaximumPingInterval 354;
 defaults write sogod SOGoMaximumSyncInterval 354;
 defaults write sogod SOGoMaximumSyncResponseSize 1024;
 defaults write sogod SOGoMaximumSyncWindowSize 15480;
-defaults write sogod SOGoInternalSyncInterval 30;"
+defaults write sogod SOGoInternalSyncInterval 30;
+defaults write sogod NGImap4ConnectionStringSeparator '.';"
+
 
 PREFORK=$(( ($(free -mt | tail -1 | awk '{print $2}') - 100) / 384 * 5 ))
 [[ ${PREFORK} -eq 0 ]] && PREFORK="5"
