@@ -40,6 +40,9 @@ plugin {
 }
 EOF
 
+# Bump memory allocation for Solr
+echo 'export JAVA_OPTS=-Xms512M -Xmx1024M' > /usr/share/tomcat7/bin/setenv.sh
+
 # Install cronjobs to keep FTS up to date
 hide_output install -m 755 conf/cronjob/dovecot /etc/cron.daily/
 hide_output install -m 644 conf/cronjob/solr /etc/cron.d/
