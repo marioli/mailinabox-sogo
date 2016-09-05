@@ -18,6 +18,22 @@ SOGO_SQL_DB="sogo"
 if [ ! -d /var/lib/mysql/$MIAB_SQL_DB ]; then
     # Create the MIAB and SOGO database
     mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE ${MIAB_SQL_DB}; CREATE DATABASE ${SOGO_SQL_DB};" >> /dev/null
+
+    # Move the datadir to $STORAGE_ROOT/mail/mysql/ for backup reasons
+    MYSQL_DATADIR=$STORAGE_ROOT/mail/mysql/
+    service mysql stop >> /dev/null
+    mkdir -p $MYSQL_DATADIR
+    mv /var/lib/mysql/* $MYSQL_DATADIR
+    tools/editconf.py /etc/mysql/mysql.conf.d/mysqld.cnf datadir=$MYSQL_DATADIR
+
+    # Help apparmor detect the new MySQL home
+    echo "alias /var/lib/mysql/ -> $MYSQL_DATADIR," >> /etc/apparmor.d/tunables/alias
+    restart_service apparmor
+    # Make emtpy dir to fool the mysql daemon into thinking these exist here
+    mkdir -p /var/lib/mysql/mysql
+
+    restart_service mysql
+
     # Import our preconfigured database to MySQL
     mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} < conf/mailinabox_init.sql >> /dev/null
 fi
