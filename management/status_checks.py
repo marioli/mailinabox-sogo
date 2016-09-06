@@ -952,9 +952,9 @@ class FileOutput:
             linelen += len(w)
         print(file=self.buf)
 
-        def print_line(self, message, monospace=False):
-            for line in message.split("\n"):
-                self.print_block(line)
+    def print_line(self, message, monospace=False):
+        for line in message.split("\n"):
+            self.print_block(line)
 
 class ConsoleOutput(FileOutput):
     def __init__(self):
