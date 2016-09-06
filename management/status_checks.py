@@ -928,33 +928,33 @@ class FileOutput:
         print(heading, file=self.buf)
         print("=" * len(heading), file=self.buf)
 
-        def print_ok(self, message):
-            self.print_block(message, first_line="✓  ")
+    def print_ok(self, message):
+        self.print_block(message, first_line="✓  ")
 
-        def print_error(self, message):
-            self.print_block(message, first_line="✖  ")
+    def print_error(self, message):
+        self.print_block(message, first_line="✖  ")
 
-        def print_warning(self, message):
-            self.print_block(message, first_line="?  ")
+    def print_warning(self, message):
+        self.print_block(message, first_line="?  ")
 
-        def print_block(self, message, first_line="   "):
-            print(first_line, end='', file = self.buf)
-            message = re.sub("\n\s*", " ", message)
-            words = re.split("(\s+)", message)
-            linelen = 0
-            for w in words:
-                if self.width and (linelen + len(w) > self.width - 1 - len(first_line)):
-                    print(file=self.buf)
-                    print("   ", end="", file = self.buf)
-                    linelen = 0
-                if linelen == 0 and w.strip() == "": continue
-                print(w, end="", file = self.buf)
-                linelen += len(w)
-            print(file=self.buf)
+    def print_block(self, message, first_line="   "):
+        print(first_line, end='', file = self.buf)
+        message = re.sub("\n\s*", " ", message)
+        words = re.split("(\s+)", message)
+        linelen = 0
+        for w in words:
+            if self.width and (linelen + len(w) > self.width - 1 - len(first_line)):
+                print(file=self.buf)
+                print("   ", end="", file = self.buf)
+                linelen = 0
+            if linelen == 0 and w.strip() == "": continue
+            print(w, end="", file = self.buf)
+            linelen += len(w)
+        print(file=self.buf)
 
-            def print_line(self, message, monospace=False):
-                for line in message.split("\n"):
-                    self.print_block(line)
+        def print_line(self, message, monospace=False):
+            for line in message.split("\n"):
+                self.print_block(line)
 
 class ConsoleOutput(FileOutput):
     def __init__(self):
