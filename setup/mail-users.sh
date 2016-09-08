@@ -93,7 +93,7 @@ user = mailinabox
 password = $MIAB_SQL_PW
 hosts = 127.0.0.1
 dbname = mailinabox
-query = SELECT 1 FROM miab_users WHERE email LIKE '%%@%s' UNION SELECT 1 FROM miab_aliases WHERE destination LIKE '%%@%s';
+query = SELECT permitted_senders FROM (SELECT permitted_senders, 0 AS priority FROM miab_aliases WHERE source='%s' AND permitted_senders IS NOT NULL UNION SELECT destination AS permitted_senders, 1 AS priority FROM miab_aliases WHERE source='%s' AND permitted_senders IS NULL UNION SELECT email as permitted_senders, 2 AS priority FROM miab_users WHERE email='%s') AS t ORDER BY priority LIMIT 1;
 EOF
 
 # ### Destination Validation
@@ -153,7 +153,7 @@ user = mailinabox
 password = $MIAB_SQL_PW
 hosts = 127.0.0.1
 dbname = mailinabox
-query = SELECT destination FROM miab_aliases WHERE source='%s';
+query = SELECT destination from (SELECT destination, 0 as priority FROM miab_aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM miab_users WHERE email='%s';
 EOF
 
 # Restart Services
