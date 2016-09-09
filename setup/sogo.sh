@@ -16,7 +16,12 @@ hide_output apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4
 echo "deb http://packages.inverse.ca/SOGo/nightly/3/ubuntu/ xenial xenial" > /etc/apt/sources.list.d/sogo.list
 hide_output apt-get update
 
-mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} < conf/sogo_init.sql >> /dev/null
+if [[ -z $(mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "SHOW TABLES LIKE 'sogo_view'" -N -B) ]]; then
+    mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "DROP VIEW IF EXISTS grouped_aliases; DROP VIEW IF EXISTS sogo_view;" -N -B  >> /dev/null
+fi
+
+mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "CREATE VIEW grouped_aliases (dest, aliases) AS SELECT destination, IFNULL(GROUP_CONCAT(source SEPARATOR ' '), '') AS address FROM miab_aliases WHERE source != destination AND source NOT LIKE '@%' GROUP BY destination;" -N -B  >> /dev/null
+mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "CREATE VIEW sogo_view (c_uid, c_name, c_password, c_cn, mail, aliases, home) AS SELECT email, email, PASSWORD, name, CONVERT(email USING latin1), IFNULL(ga.aliases, ''), CONCAT('$STORAGE_ROOT/mail/mailboxes/', maildir) FROM miab_users LEFT OUTER JOIN grouped_aliases ga ON ga.dest = miab_users.email WHERE active=1;" -N -B  >> /dev/null
 
 apt_install sogo sogo-activesync libwbxml2-0 memcached
 
