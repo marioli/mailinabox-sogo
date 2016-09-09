@@ -153,7 +153,7 @@ user = mailinabox
 password = $MIAB_SQL_PW
 hosts = 127.0.0.1
 dbname = mailinabox
-query = SELECT destination from (SELECT destination, 0 as priority FROM miab_aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM miab_users WHERE email='%s';
+query = SELECT destination from (SELECT destination, 0 as priority FROM miab_aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM miab_users WHERE email='%s') AS u ORDER BY priority LIMIT 1;
 EOF
 
 # Restart Services
