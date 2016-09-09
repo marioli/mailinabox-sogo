@@ -16,14 +16,12 @@ hide_output apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4
 echo "deb http://packages.inverse.ca/SOGo/nightly/3/ubuntu/ xenial xenial" > /etc/apt/sources.list.d/sogo.list
 hide_output apt-get update
 
-if [[ -z $(mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "SHOW TABLES LIKE 'sogo_view'" -N -B) ]]; then
-    mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "CREATE VIEW sogo_view (c_uid, c_name, c_password, c_cn, mail, home) AS SELECT email, email, PASSWORD, name, CONVERT(email USING latin1), CONCAT('$STORAGE_ROOT/mail/mailboxes/', maildir) FROM miab_users WHERE active=1;" -N -B  >> /dev/null
-fi
+mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} < conf/sogo_init.sql >> /dev/null
 
 apt_install sogo sogo-activesync libwbxml2-0 memcached
 
 sudo -u sogo bash -c "
-defaults write sogod SOGoUserSources '({type = sql;id = directory;viewURL = mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_view;canAuthenticate = YES;isAddressBook = YES;displayName = \"Global Address Book\";userPasswordAlgorithm = ssha256;})'
+defaults write sogod SOGoUserSources '({type = sql;id = directory;viewURL = mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${MIAB_SQL_DB}/sogo_view;canAuthenticate = YES;isAddressBook = YES;displayName = \"Global Address Book\";MailFieldNames = (aliases);userPasswordAlgorithm = ssha256;})'
 defaults write sogod SOGoProfileURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_user_profile'
 defaults write sogod OCSFolderInfoURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_folder_info'
 defaults write sogod OCSEMailAlarmsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@localhost:3306/${SOGO_SQL_DB}/sogo_alarms_folder'

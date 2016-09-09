@@ -19,6 +19,9 @@ CREATE TABLE `miab_aliases` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `source` (`source`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+/* For testing purposes. Probably outdated aswell. */
 /*
 INSERT INTO `mailinabox`.`miab_users`
   (`id`, `password` , `email`, `name`, maildir, extra, privileges, active)
@@ -28,7 +31,11 @@ VALUES
 
 
 INSERT INTO `mailinabox`.`miab_aliases`
-  (`id`, `domain_id`, `source`, `destination`)
+  (`id`, `source`, `destination`)
 VALUES
-  ('1', '1', 'alias@test.com', 't1@test.com');
+  ('1', 'alias1@test.com', 't1@test.com'),
+  ('2', 'alias2@test.com', 't2@test.com'),
+  ('3', 'alias3@test.com', 't2@test.com'),
+  ('4', 'alias4@test.com', 't2@test.com'),
+  ('5', 'alias5@test.com', 't3@test.com');
 */
