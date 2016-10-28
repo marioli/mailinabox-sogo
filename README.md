@@ -7,7 +7,7 @@ Mail-in-a-Box helps individuals take back control of their email by defining a o
 -----------------------
 This fork of [Mail-in-a-Box](https://github.com/mail-in-a-box/mailinabox) intends to upgrade the base OS to 16.04 LTS and replace Roundcube/Z-push (and more) with the [SOGo Groupware](http://www.sogo.nu/).
 
-In the nearest future you should consider this fork as **highly experimental** and **not fit for production**.
+As of writing (28th October 2016) this fork is stable and working, and qualifies for production usage.
 
 **NOTE**: There is NO upgrade/migration path from older Mail-in-a-Box installations.
 
