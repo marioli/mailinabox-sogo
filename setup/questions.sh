@@ -19,7 +19,7 @@ if [ -z "$NONINTERACTIVE" ]; then
 		"Hello and thanks for deploying a Mail-in-a-Box!
 		\n\nI'm going to ask you a few questions.
 		\n\nTo change your answers later, just run 'sudo mailinabox' from the command line.
-		\n\nNOTE: You should only install this on a brand new Ubuntu installation 100% dedicated to Mail-in-a-Box. Mail-in-a-Box will, for example, remove apache2."
+		\n\nNOTE: You should only install this on a brand new Debian installation 100% dedicated to Mail-in-a-Box. Mail-in-a-Box will, for example, remove apache2."
 fi
 
 # The box needs a name.
@@ -191,7 +191,7 @@ if [ -z "$STORAGE_USER" ]; then
 	STORAGE_USER=$([[ -z "$DEFAULT_STORAGE_USER" ]] && echo "user-data" || echo "$DEFAULT_STORAGE_USER")
 fi
 if [ -z "$STORAGE_ROOT" ]; then
-	STORAGE_ROOT=$([[ -z "$DEFAULT_STORAGE_ROOT" ]] && echo "/home/$STORAGE_USER" || echo "$DEFAULT_STORAGE_ROOT")
+	STORAGE_ROOT=$([[ -z "$DEFAULT_STORAGE_ROOT" ]] && echo "/srv/$STORAGE_USER" || echo "$DEFAULT_STORAGE_ROOT")
 fi
 
 # Show the configuration, since the user may have not entered it manually.

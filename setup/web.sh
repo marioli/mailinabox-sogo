@@ -18,9 +18,16 @@ fi
 # Turn off nginx's default website.
 
 echo "Installing Nginx (web server)..."
+if [ ! -f /etc/apt/sources.list.d/nginx.list ]; then
+  echo '# this file has been added by mailinabox' > /etc/apt/sources.list.d/nginx.list
+  echo 'deb http://nginx.org/packages/debian/ jessie nginx' >> /etc/apt/sources.list.d/nginx.list
+  echo 'deb-src http://nginx.org/packages/debian/ jessie nginx' >> /etc/apt/sources.list.d/nginx.list
+  curl -s http://nginx.org/keys/nginx_signing.key | apt-key add -
+  apt update
+fi
 apt_install nginx
 
-rm -f /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/conf.d/default.conf
 
 # Copy in a nginx configuration file for common and best-practices
 # SSL settings from @konklone. Replace STORAGE_ROOT so it can find
@@ -36,8 +43,12 @@ sed "s#STORAGE_ROOT#$STORAGE_ROOT#" \
 # 64 in 2014 to accommodate a long domain name (20 characters?). But
 # even at 64, a 58-character domain name won't work (#93), so now
 # we're going up to 128.
-tools/editconf.py /etc/nginx/nginx.conf -s \
-	server_names_hash_bucket_size="128;"
+touch /etc/nginx/conf.d/additional_http_config.conf
+if grep -qw server_names_hash_bucket_size /etc/nginx/nginx.conf; then
+  tools/editconf.py /etc/nginx/nginx.conf -s server_names_hash_bucket_size="128;"
+else
+  tools/editconf.py /etc/nginx/conf.d/additional_http_config.conf -s server_names_hash_bucket_size="128;"
+fi
 
 # Other nginx settings will be configured by the management service
 # since it depends on what domains we're serving, which we don't know

@@ -14,6 +14,23 @@ source setup/functions.sh # load our functions
 echo $PRIMARY_HOSTNAME > /etc/hostname
 hostname $PRIMARY_HOSTNAME
 
+## add into hosts file
+sed '/# BEGIN MAILINABOX HOSTNAME/,/# END MAILINABOX HOSTNAME/d' -i /etc/hosts
+echo '# BEGIN MAILINABOX HOSTNAME' >> /etc/hosts
+echo "$PRIVATE_IP $PRIMARY_HOSTNAME $(hostname -s)" >> /etc/hosts
+echo '# END MAILINABOX HOSTNAME' >> /etc/hosts
+
+
+## set some settings for the system
+grep -q ^"alias ll=" /etc/bash.bashrc || echo 'alias ll="ls -l"' >> /etc/bash.bashrc
+grep ^"PS1=" /etc/bash.bashrc | grep -q MAILINABOX || echo "PS1='\[\033[1;30m\]MAILINABOX \[\033[0;34m\]| \[\033[0;30m\]\${debian_chroot:+(\$debian_chroot)}\h:\w\\\$ '" >> /etc/bash.bashrc
+
+
+## Adding non-free sources to the system
+if [ ! -f /etc/apt/sources.list.d/debian-nonfree.list ]; then
+  echo 'deb http://ftp.de.debian.org/debian/ jessie non-free' > /etc/apt/sources.list.d/debian-nonfree.list
+  echo 'deb-src http://ftp.de.debian.org/debian/ jessie non-free' >> /etc/apt/sources.list.d/debian-nonfree.list
+fi
 # ### Add swap space to the system
 
 # If the physical memory of the system is below 2GB it is wise to create a
@@ -96,7 +113,7 @@ apt_get_quiet upgrade
 echo Installing system packages...
 apt_install python3 python3-dev python3-pip \
 	netcat-openbsd wget curl git sudo coreutils bc \
-	haveged pollinate \
+	haveged \
 	unattended-upgrades cron ntp fail2ban
 
 # ### Set the system timezone
@@ -184,6 +201,8 @@ dd if=/dev/random of=/dev/urandom bs=1 count=32 2> /dev/null
 # is really any good on virtualized systems, we'll also seed from Ubuntu's
 # pollinate servers:
 
+curl -s https://raw.githubusercontent.com/dustinkirkland/pollinate/master/pollinate -o /usr/local/bin/pollinate
+chmod +x /usr/local/bin/pollinate
 pollinate  -q -r
 
 # Between these two, we really ought to be all set.

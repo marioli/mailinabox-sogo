@@ -5,9 +5,9 @@ Mail-in-a-Box helps individuals take back control of their email by defining a o
 
 !!! About this fork !!!
 -----------------------
-This fork of [Mail-in-a-Box](https://github.com/mail-in-a-box/mailinabox) intends to upgrade the base OS to 16.04 LTS and replace Roundcube/Z-push (and more) with the [SOGo Groupware](http://www.sogo.nu/).
+This fork of [Mail-in-a-Box](https://github.com/mail-in-a-box/mailinabox) intends to change the OS to Debian 8 (Jessie) and replace Roundcube/Z-push (and more) with the [SOGo Groupware](http://www.sogo.nu/).
 
-As of writing (28th October 2016) this fork is stable and working, and qualifies for production usage.
+**Current statu**s: Work in Progress.
 
 **NOTE**: There is NO upgrade/migration path from older Mail-in-a-Box installations.
 
@@ -26,7 +26,7 @@ Additionally, this project has a [Code of Conduct](CODE_OF_CONDUCT.md), which su
 The Box
 -------
 
-Mail-in-a-Box turns a fresh Ubuntu 16.04 LTS 64-bit machine into a working mail server by installing and configuring various components.
+Mail-in-a-Box turns a fresh Debian 8 64-bit machine into a working mail server by installing and configuring various components.
 
 It is a one-click email appliance. There are no user-configurable setup options. It "just works".
 
@@ -50,7 +50,7 @@ For more information on how Mail-in-a-Box handles your privacy, see the [securit
 Installation
 ------------
 
-Start with a completely fresh (really, I mean it) Ubuntu 16.04 LTS 64-bit machine. On the machine...
+Start with a completely fresh (really, I mean it) Debian 8 (Jessie) 64-bit machine. On the machine...
 
 Clone this repository:
 

@@ -8,8 +8,8 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Check that we are running on Ubuntu 16.04 LTS (or 16.04.xx).
-if [ "`lsb_release -d | sed 's/.*:\s*//' | sed 's/16\.04\.[0-9]/16.04/' `" != "Ubuntu 16.04 LTS" ]; then
-	echo "Mail-in-a-Box only supports being installed on Ubuntu 16.04, sorry. You are running:"
+if [ "`lsb_release -d | sed 's/.*:\s*//' | sed s/8\.[0-9]\ //g | sed s/[\)\(]//g`" != "Debian GNU/Linux jessie" ]; then
+	echo "Mail-in-a-Box only supports being installed on Debian 8 (jessie), sorry. You are running:"
 	echo
 	lsb_release -d | sed 's/.*:\s*//'
 	echo
@@ -59,4 +59,7 @@ if [ -z "$ARM" ]; then
 	echo "Your architecture is $ARCHITECTURE"
 	exit
 fi
+fi
+if [ ! -f /usr/bin/curl ]; then
+  apt_install curl
 fi

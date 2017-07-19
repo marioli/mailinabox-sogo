@@ -23,7 +23,7 @@ if [ ! -d $MYSQL_DATADIR ]; then
     service mysql stop >> /dev/null
 
     # Change the datadir location for MySQL
-    tools/editconf.py /etc/mysql/mysql.conf.d/mysqld.cnf datadir=$MYSQL_DATADIR
+    tools/editconf.py /etc/mysql/my.cnf datadir=$MYSQL_DATADIR
 
     # Create the new database location in our $STORAGE_ROOT
     mkdir -p $MYSQL_DATADIR
@@ -36,10 +36,6 @@ if [ ! -d $MYSQL_DATADIR ]; then
 
     # Make emtpy dir to fool the mysql daemon into thinking these exist
     mkdir -p /var/lib/mysql/mysql
-
-    # Help apparmor detect the new MySQL home and then restart apparmor
-    echo "alias /var/lib/mysql/ -> $MYSQL_DATADIR," >> /etc/apparmor.d/tunables/alias
-    restart_service apparmor
 
     # Restart the MySQL daemon
     restart_service mysql

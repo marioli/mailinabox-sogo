@@ -12,8 +12,8 @@ TIMEZONE=`cat /etc/timezone`
 FQDN=`hostname`
 DOMAIN=`hostname -d`
 
-hide_output apt-key adv --keyserver keys.gnupg.net --recv-key 0x810273C4
-echo "deb http://packages.inverse.ca/SOGo/nightly/3/ubuntu/ xenial xenial" > /etc/apt/sources.list.d/sogo.list
+hide_output apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-key 0x810273C4
+echo "deb http://packages.inverse.ca/SOGo/nightly/3/debian/ jessie jessie" > /etc/apt/sources.list.d/sogo.list
 hide_output apt-get update
 
 if [[ -z $(mysql --defaults-file=/etc/mysql/debian.cnf ${MIAB_SQL_DB} -e "SHOW TABLES LIKE 'sogo_view'" -N -B) ]]; then
