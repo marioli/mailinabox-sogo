@@ -34,7 +34,7 @@ defaults write sogod OCSSessionsFolderURL 'mysql://mailinabox:${MIAB_SQL_PW}@loc
 defaults write sogod SOGoEnableEMailAlarms YES
 defaults write sogod SOGoPageTitle '${FQDN}';
 defaults write sogod SOGoForwardEnabled YES;
-defaults write sogod SOGoMailAuxiliaryUserAccountsEnabled YES;
+defaults write sogod SOGoMailAuxiliaryUserAccountsEnabled NO;
 defaults write sogod SOGoTimeZone '${TIMEZONE}';
 defaults write sogod SOGoMailDomain '${DOMAIN}';
 defaults write sogod SOGoAppointmentSendEMailNotifications YES;
@@ -64,7 +64,8 @@ defaults write sogod SOGoMaximumSyncInterval 354;
 defaults write sogod SOGoMaximumSyncResponseSize 1024;
 defaults write sogod SOGoMaximumSyncWindowSize 15480;
 defaults write sogod SOGoInternalSyncInterval 30;
-defaults write sogod NGImap4ConnectionStringSeparator '.';"
+defaults write sogod NGImap4ConnectionStringSeparator '.';
+defaults write sogod SOGoSupportedLanguages '( \"English\", \"German\")';"
 
 
 PREFORK=$(( ($(free -mt | tail -1 | awk '{print $2}') - 100) / 384 * 5 ))

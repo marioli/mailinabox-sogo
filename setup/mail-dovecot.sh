@@ -44,10 +44,12 @@ tools/editconf.py /etc/dovecot/conf.d/10-master.conf \
 # The inotify `max_user_instances` default is 128, which constrains
 # the total number of watched (IMAP IDLE push) folders by open connections.
 # See http://www.dovecot.org/pipermail/dovecot/2013-March/088834.html.
-# A reboot is required for this to take effect (which we don't do as
-# as a part of setup). Test with `cat /proc/sys/fs/inotify/max_user_instances`.
+# Test with `cat /proc/sys/fs/inotify/max_user_instances`.
 tools/editconf.py /etc/sysctl.conf \
 	fs.inotify.max_user_instances=1024
+
+## apply value
+/sbin/sysctl -q --system
 
 # Set the location where we'll store user mailboxes. '%d' is the domain name and '%n' is the
 # username part of the user's email address. We'll ensure that no bad domains or email addresses
@@ -166,6 +168,47 @@ plugin {
   sieve_dir = $STORAGE_ROOT/mail/sieve/%d/%n
 }
 EOF
+
+cat > /etc/dovecot/conf.d/auth-master.conf.ext << EOF;
+passdb {
+  driver = passwd-file
+  master = yes
+  args = /etc/sogo/dovecot.master
+
+  # Unless you're using PAM, you probably still want the destination user to
+  # be looked up from passdb that it really exists. pass=yes does that.
+  pass = yes
+}
+passdb {
+  driver = sql
+  args = /etc/dovecot/dovecot-sql-master.conf.ext
+  master = yes
+  pass = yes
+}
+EOF
+
+# write master-sql config as a patched version of the sql config
+/bin/cp -f /etc/dovecot/dovecot-sql.conf.ext /etc/dovecot/dovecot-sql-master.conf.ext
+tools/editconf.py /etc/dovecot/dovecot-sql-master.conf.ext \
+  password_query="SELECT email as user, password FROM miab_users WHERE email='%u' AND privileges='admin';"
+sed -i '/^user_query/d' /etc/dovecot/dovecot-sql-master.conf.ext
+sed -i '/^iterate_query/d' /etc/dovecot/dovecot-sql-master.conf.ext
+sed -i '/^#/d' /etc/dovecot/dovecot-sql-master.conf.ext
+
+## enable auth-master.conf.ext
+sed -i '/^#.*auth-master.conf.ext/s/^#//' /etc/dovecot/conf.d/10-auth.conf 
+
+echo "mailinaboxmaster:{PLAIN}$(dd if=/dev/urandom bs=1k count=1 2>/dev/null|base64|sha512sum |cut -c 1-25)" > /etc/sogo/dovecot.master
+chown dovecot:sogo /etc/sogo/dovecot.master
+chmod 440 /etc/sogo/dovecot.master
+ln -s /etc/sogo/dovecot.master /etc/sogo/sieve.creds
+
+
+## set a auth_master_user_separator within dovecot
+sed -i '/^#.*auth_master_user_separator/s/^#//' /etc/dovecot/conf.d/10-auth.conf 
+tools/editconf.py /etc/dovecot/conf.d/10-auth.conf \
+	auth_master_user_separator=\*
+
 
 # Copy the global sieve script into where we've told Dovecot to look for it. Then
 # compile it. Global scripts must be compiled now because Dovecot won't have
